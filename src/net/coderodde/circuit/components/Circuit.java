@@ -193,11 +193,11 @@ public final class Circuit {
         
         boolean[] inputBits = new boolean[getNumberOfInputs()];
         
-        while (inc(inputBits)) {
+        do {
             if (!Arrays.equals(readOutput(), other.readOutput())) {
                 return false;
             }
-        }
+        } while (inc(inputBits));
         
         return true;
     }
@@ -240,6 +240,47 @@ public final class Circuit {
         }
         
         private boolean tryMinimizeNotNotAnd() {
+            List<CircuitGate> gateList = new ArrayList<>(allGates);
+            
+            for (CircuitGate gate : gateList) {
+                if (!(gate instanceof AndGate)) {
+                    continue;
+                }
+                
+                AndGate andGate = (AndGate) gate;
+                
+                CircuitGate parent1 = andGate.inputGate1;
+                CircuitGate parent2 = andGate.inputGate2;
+                
+                if (!(parent1 instanceof NotGate)) {
+                    continue;
+                }
+                
+                if (!(parent2 instanceof NotGate)) {
+                    continue;
+                }
+                
+                NotGate not1 = (NotGate) parent1;
+                NotGate not2 = (NotGate) parent2;
+                
+                OrGate orGate = new OrGate();
+                orGate.connectInputGate(not1.inputGate);
+                orGate.connectInputGate(not2.inputGate);
+                
+                NotGate notGate = new NotGate();
+                notGate.connectInputGate(orGate);
+                
+                if (andGate.outputGate instanceof SingularCircuitGate) {
+                    ((SingularCircuitGate) andGate.outputGate)
+                            .connectInputGate(notGate);
+                } else if (andGate.outputGate instanceof DualCircuitGate) {
+                    ((DualCircuitGate) andGate.outputGate)
+                            .connectInputGate(notGate);
+                } else {
+                    throw new IllegalStateException();
+                }
+            }
+            
             return false;
         }
 

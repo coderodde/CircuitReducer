@@ -30,6 +30,8 @@ public final class Demo {
         c.minimize();
         System.out.println(c.size());
         
+        System.out.println("Equals: " + c.equals(copy));
+        
 //        System.exit(0);
 //        
 //        AndGate andGate = new AndGate();
